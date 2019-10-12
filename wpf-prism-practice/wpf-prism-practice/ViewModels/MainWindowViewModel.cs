@@ -1,12 +1,19 @@
-﻿using Prism.Commands;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Windows;
+using Prism.Commands;
 using Prism.Mvvm;
 using System.Collections.Generic;
 using System.Linq;
+using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
+
 
 namespace wpf_prism_practice.ViewModels
 {
-    public class MainWindowViewModel : BindableBase
+    public class MainWindowViewModel : BindableBase, System.IDisposable
     {
+        void System.IDisposable.Dispose() { this.disposables.Dispose(); }
         private string _title = "Prism Unity Application";
         public string Title
         {
@@ -21,9 +28,14 @@ namespace wpf_prism_practice.ViewModels
             private set { SetProperty(ref _selectedItemText, value); }
         }
 
+        public ReactiveCommand SelectedItemChanged { get; }
+
         public IList<string> Items { get; private set; }
 
         public DelegateCommand<object[]> SelectedCommand { get; private set; }
+
+        private System.Reactive.Disposables.CompositeDisposable disposables
+            = new System.Reactive.Disposables.CompositeDisposable();
 
         public MainWindowViewModel()
         {
@@ -37,6 +49,15 @@ namespace wpf_prism_practice.ViewModels
 
             // This command will be executed when the selection of the ListBox in the view changes.
             SelectedCommand = new DelegateCommand<object[]>(OnItemSelected);
+
+            this.SelectedItemChanged = new ReactiveCommand()
+                            .AddTo(this.disposables);
+            this.SelectedItemChanged.Subscribe(e => this.nodeChanged());
+        }
+
+        private void nodeChanged()
+        {
+            int p = 1;
         }
 
         private void OnItemSelected(object[] selectedItems)
